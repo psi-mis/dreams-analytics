@@ -1,0 +1,22 @@
+{
+	"version" : "1.1",
+	,"name":"Dream Report"
+	,"description":"Dream Report"
+	"launch_path" : "index.html",
+	"installs_allowed_from" : null,
+	"default_locale" : "us",
+	"icons" : {
+		"16" : null,
+		"48" : "img/icon48.png",
+		"128" : "img/icon128.png"
+	},
+	"developer":{"url":"www.hispcolombia.org","name":"Helder & Marko","company":"Hisp Colombia","email":"heldersoft@gmail.com"}
+	"activities" : {
+		"dhis" : {
+			"href" : "https://dev.zim-dreams.org"
+		}
+	},
+	"folderName" : null,
+	"baseUrl" : null,
+	"launchUrl" : null
+}

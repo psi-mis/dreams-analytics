@@ -1,0 +1,346 @@
+<!--
+
+    Template file Created by HISP Colombia.
+    2015
+    hcastrillon@hispcolombia.org,heldersoft@gmail.com
+    Modified by Marko García, markodavidgm@gmail.com
+
+->
+
+<!--jQuery-->
+<script src="../../../dhis-web-commons/javascripts/jQuery/jquery.min.js" type="text/javascript"> </script>
+<!--Angular-->
+<script src="../../../dhis-web-commons/javascripts/angular/angular.js" type="text/javascript"> </script>
+<script src="../../../dhis-web-commons/javascripts/angular/angular-resource.js" type="text/javascript"> </script>
+<script src="../../../dhis-web-commons/javascripts/angular/plugins/angular-translate.min.js" type="text/javascript"> </script>
+
+<!--Bootstrap-->
+<script src="../../../dhis-web-commons/bootstrap/js/bootstrap.min.js" type="text/javascript"> </script>
+<script src="../../../dhis-web-commons/bootstrap/js/bootstrap-datepicker.js" type="text/javascript"> </script>
+<link rel="stylesheet" href="../../../dhis-web-commons/bootstrap/css/bootstrap.min.css">
+<!--ui-bootstrap-->
+<script src="../../../dhis-web-commons/javascripts/angular/ui-bootstrap.js" type="text/javascript"> </script>
+<!-- Dhis menu -->
+<link type="text/css" rel="stylesheet" href="../../../dhis-web-commons/font-awesome/css/font-awesome.min.css"/>
+<link type="text/css" rel="stylesheet" media="screen" href="../../../dhis-web-commons/css/menu.css">
+<script type="text/javascript" src="../../../dhis-web-commons/javascripts/dhis2/dhis2.translate.js"></script>
+ <script type="text/javascript" src="../../../dhis-web-commons/javascripts/dhis2/dhis2.menu.js"></script>
+ <script type="text/javascript" src="../../../dhis-web-commons/javascripts/dhis2/dhis2.menu.ui.js"></script> 
+ <!--Directives-->
+<script type="text/javascript">
+
+
+    ////Principal module
+    var appHISPColombia = angular.module("appHISPColombia", ['ngResource', 'ui.bootstrap', 'pascalprecht.translate'])
+            .factory("commonvariable", function () {
+                var Vari = {
+                    url: "../api"
+                };
+
+                return Vari;
+            })
+            .factory("sqlViews", ['$resource', 'commonvariable', function ($resource, commonvariable) {
+                return $resource(commonvariable.url + "/sqlViews/:id/data",
+                        {id:"@id",var:"@var"},
+                        {
+
+                            get: { method: "GET"}
+                        });
+                    
+            }])
+
+
+            .config(function ($translateProvider) {
+
+
+                $translateProvider.translations('en', {
+
+
+                    TITLE_APPS: 'DREAMS Reports',
+                    LABEL_SQLVIEW: 'Select a Report',
+                    LABEL_INITDATE: 'Start date',
+                    LABEL_ENDDATE: 'End date',
+                    LABEL_END_AGE: 'Max age',
+                    LABEL_START_AGE: 'Min age',
+                    BUTTON_GENERATE: 'Generate',
+                    LABEL_MESSAGETITTLE: 'Attention!',
+                    LABEL_MESSAGEDETAIL: ", the report has not been generated",
+                    LABEL_MESSAGETITTLEGEN: 'Generating report!',
+                    LABEL_MESSAGEDETAILGEN: ', please wait while the report is generated',
+                    LABEL_REGISTERACTIVE:' register without user(register still active)',
+                    LABEL_RUN:' Run',
+                    LABEL_TBL_USER: 'User',
+                    LABEL_TBL_ORGUNIT: 'Organisation Unit ',
+                    LABEL_TBL_PROGRAM: 'Program',
+                    LABEL_TBL_DATASET: 'Dataset'
+                });
+
+                $translateProvider.translations('es', {
+
+                    TITLE_APPS: 'DREAMS Reports',
+                    LABEL_SQLVIEW: 'Seleccionar SQL VIEW',
+                    LABEL_INITDATE: 'Fecha inicial',
+                    LABEL_ENDDATE: 'Fecha final',
+                    LABEL_START_AGE: 'Min age',
+                    LABEL_END_AGE: 'Edad máxima',
+                    TITTLE: 'Reporte de usuarios por país',
+                    BUTTON_GENERATE: 'Generar',
+                    LABEL_MESSAGETITTLE: 'Atención!',
+                    LABEL_MESSAGEDETAIL: ", el reporte no ha sido generado",
+                    LABEL_MESSAGETITTLEGEN: 'Generando reporte!',
+                    LABEL_MESSAGEDETAILGEN: ', por favor espere mientras el reporte es generado',
+                    LABEL_REGISTERACTIVE:' register without user(register still active)',
+                    LABEL_RUN:' Generar',
+                    LABEL_TBL_USER: 'Usuario',
+                    LABEL_TBL_ORGUNIT: 'Unidad Organizativa ',
+                    LABEL_TBL_PROGRAM: 'Programa',
+                    LABEL_TBL_DATASET: 'Dataset'
+
+                });
+                $translateProvider.registerAvailableLanguageKeys(
+                        ['es', 'en'],
+                        {
+                            'en*': 'en',
+                            'es*': 'es',
+                            '*': 'en' // must be last!
+                        }
+                );
+                $translateProvider.fallbackLanguage(['en']);
+                jQuery.ajax({ url: '../../../api/userSettings/keyUiLocale/', contentType: 'text/plain', method: 'GET', dataType: 'text', async: false }).success(function (uiLocale) {
+                    if (uiLocale == '') {
+                        $translateProvider.determinePreferredLanguage();
+                    }
+                    else {
+                        $translateProvider.use(uiLocale);
+                    }
+                }).fail(function () {
+                    $translateProvider.determinePreferredLanguage();
+                });
+
+
+
+            })
+            .controller('reportcontroller', ['$scope','sqlViews', function ($scope, sqlViews) {
+                $scope.generating = false;
+                $scope.QueryID="";
+                $scope.maxAge=0;
+                $scope.minAge=0;
+                $scope.ages=[];
+                $scope.createAges = function () {
+                    for (var i= 1;i<=100;i++) {
+                        $scope.ages.push({id:i,label:"Age "+i});
+
+                    }
+
+                }
+
+                $scope.SetQuery=function(idQuery,nameQuery){
+                    $scope.QueryID=idQuery;
+                    $scope.nameQuery=nameQuery;
+                };
+
+                $scope.createAges();
+                
+                $scope.displaySqlViews=[];
+                //$scope.displaySqlViews=[{"id":"CJdV8Pg6V8J","name":"Number of Unique Services Received by Unique Clients"},{"id":"ohUyVD2aTgY","name":"Total Clients by Service and District"}];
+                
+
+
+
+                $scope.selectMinAge= function (minAgeSelected, minLabel) {
+                    $scope.minAge = minAgeSelected;
+                    $scope.minLabel=minLabel;
+
+
+                }
+
+
+                $scope.selectMaxAge= function (maxAgeSelected, maxLabel) {
+                    $scope.maxAge = maxAgeSelected;
+                    $scope.maxLabel=maxLabel;
+
+                }
+
+                //Firter all views that start with "_App"
+                $scope.getListReport= function () {
+                    
+                    var Paramurl="sqlViews?fields=id,name&filter=name:like:_App";
+                   jQuery.ajax({ url: '../../../api/'+Paramurl, contentType: 'text/plain', method: 'GET', dataType: 'text', async: false }).success(function (responseQuery) {
+                            meSqlViews=JSON.parse(responseQuery);
+                            angular.forEach(meSqlViews.sqlViews,function(value,key){
+                                $scope.displaySqlViews.push({"id":value.id,"name":value.name});
+                            });
+                            
+                    }).fail(function () {
+                        console.log("error");
+                    });
+                }
+                $scope.getListReport();
+
+                $scope.getSqlViews = function () {
+                    $scope.ListDetails = [];
+                    $scope.ListHeaders = [];
+                    var dinit = new Date($scope.initDate);
+                    var dend= new Date($scope.endDate);
+                    dinit.setTime(dinit.getTime()- new Date().getTimezoneOffset()*60*1000 );
+                    dend.setTime(dend.getTime()- new Date().getTimezoneOffset()*60*1000 );
+
+                    //console.log('Pimera: ' + $scope.initDate.toISOString());
+                    //console.log('Segunda: ' + new Date($scope.initDate.toISOString()));
+                    //console.log('Tercera: ' + $scope.initDate);
+                    //console.log('Cuarta: ' + dinit.toISOString() );
+                    //console.log('Cuarta 1: ' + dinit.getTime() );
+                    //console.log('Cuarta 2: ' + new Date().getTimezoneOffset()*60*1000 );
+                    //var Paramurl="sqlViews/"+$scope.QueryID+"/data?var=startDate:"+$scope.initDate.toISOString().substr(0, 10)+"&var=endDate:"+$scope.endDate.toISOString().substr(0, 10)+"&var=startAge:"+$scope.minAge+"&var=endAge:"+ $scope.maxAge
+                    var Paramurl="sqlViews/"+$scope.QueryID+"/data?var=startDate:"+dinit.toISOString().substr(0,10)+"&var=endDate:"+dend.toISOString().substr(0,10)+"&var=startAge:"+$scope.minAge+"&var=endAge:"+ $scope.maxAge+"&paging=false"
+                   jQuery.ajax({ url: '../../../api/'+Paramurl, contentType: 'text/plain', method: 'GET', dataType: 'text', async: false }).success(function (responseQuery) {
+                            meSqlViews=JSON.parse(responseQuery);
+                            $scope.ListDetails=meSqlViews.listGrid.rows;
+                            $scope.ListHeaders=meSqlViews.listGrid.headers;
+                            $scope.generating = false;
+                            console.log(meSqlViews.listGrid.rows);
+
+                   }).fail(function () {
+                        console.log("error");
+                    });
+                    
+                }
+
+                $scope.Generate = function () {
+
+                    $scope.generating = true;
+                    $scope.getSqlViews();
+                  
+                }
+
+            }]);
+
+</script>
+<script src="directives/header/headerController.js" type="text/javascript"></script>
+<div ng-app="appHISPColombia">
+    <div ng-controller="reportcontroller">
+
+
+        <div class="panel panel-default">
+           <d2-header></d2-header>
+			<script>
+			   window.dhis2 = window.dhis2 || {};
+			   dhis2.settings = dhis2.settings || {};
+			   dhis2.settings.baseUrl = '';
+			</script>
+
+        <div class="row">
+            
+            <div class="text-center" ng-show="generating">
+                <div class="alert alert-warning alert-dismissible" role="alert">
+                    <img src='../../../images/ajax-loader-circle.gif' /> <span></span> <strong> {{'LABEL_MESSAGETITTLEGEN' | translate}}</strong>{{'LABEL_MESSAGEDETAILGEN' | translate}}
+
+                </div>
+            </div>
+        </div>
+
+            <div class="panel-body">
+                <div class="row">
+
+                    <div class="form-group col-md-4"> 
+
+                        <label>{{'LABEL_SQLVIEW' | translate}}</label>
+                        <div class="dropdown">
+                            <button id="dLabel" type="button" class="btn btn-primary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                {{nameQuery?nameQuery:'LABEL_SQLVIEW' | translate}}
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dLabel">
+                                <li ng-repeat="query in displaySqlViews">
+                                     <a ng-click='SetQuery(query.id,query.name)'>{{query.name}}</a>
+                                </li>                               
+                                
+                            </ul>
+                        </div>
+
+                        </div >
+
+
+                    <div class="form-group  col-md-2">
+                        <label>{{'LABEL_INITDATE' | translate}}</label>
+                        <input type="date" ng-model="initDate" class="form-control" placeholder="YYYY-MM-DD" />
+
+                    </div>
+
+
+
+                    <div class="form-group  col-md-2">
+                        <label>{{'LABEL_ENDDATE' | translate}}</label>
+                        <input type="date" ng-model="endDate" class="form-control" placeholder="YYYY-MM-DD" />
+                    </div>
+
+                    <div class="form-group  col-md-1">
+                        <label>{{'LABEL_START_AGE' | translate}}</label>
+                        <div class="dropdown">
+                            <button id="dLabel1" type="button" class="btn btn-primary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                {{minLabel?minLabel:'LABEL_START_AGE' | translate}}
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dLabel">
+                                <li ng-repeat="age1 in ages">
+                                    <a ng-click="selectMinAge(age1.id,age1.label)">{{age1.label}}</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-group  col-md-1">
+                        <label>{{'LABEL_END_AGE' | translate}}</label>
+                        <div class="dropdown">
+                            <button id="dLabel2" type="button" class="btn btn-primary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                {{maxLabel?maxLabel:'LABEL_END_AGE' | translate}}
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dLabel">
+                                <li ng-repeat="age2 in ages">
+                                   <a ng-click='selectMaxAge(age2.id,age2.label)'>{{age2.label}}</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-group  col-md-1">
+                        <label>{{'BUTTON_GENERATE' | translate}}</label>
+                        <button type="button" class="btn btn-default center-block" ng-click="Generate()" >{{'BUTTON_GENERATE' | translate}}</button>
+                    </div>
+
+                </div>                
+
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12" >
+
+                <div class="row">
+
+                    <div class="well well-lg">
+
+                        <table class="table">
+
+                            <tr >
+                                <th ng-repeat="head in ListHeaders ">{{head.name }}</th>
+                            </tr>
+                            <tr ng-repeat="data in ListDetails track by $index ">
+
+                                <td ng-repeat="column in data track by $index">
+                                    {{column}}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
