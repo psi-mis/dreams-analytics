@@ -1,7 +1,7 @@
 {
 	"version":"1.1"
-	,"name":"Dream Report"
-	,"description":"Dream Report"
+	,"name":"DREAMS Reports"
+	,"description":"DREAMS Reports viewer"
 	,"icons":{"16":null,"48":"img/icon48.png","128":"img/icon128.png"}
 	,"developer":{"url":"www.hispcolombia.org","name":"Helder & Marko","company":"Hisp Colombia","email":"heldersoft@gmail.com"}
 	,"launch_path":"index.html"
